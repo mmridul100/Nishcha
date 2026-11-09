@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>নিসচা - কিশোরগঞ্জ সদর উপজেলা শাখা</title>
+  <link rel="icon" type="image/png" href="app_logo.png">
+
+  <!-- Google Fonts for Bengali -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#1E8E3E',
+              dark: '#156529',
+              light: '#E8F5E9',
+              container: '#DCF3E3'
+            }
+          },
+          fontFamily: {
+            sans: ['"Hind Siliguri"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Smooth transitions and custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #1E8E3E; }
+    .fade-in { animation: fadeIn 0.25s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+
+  <!-- Firebase App & Services (v9 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-[#F8FAF9] text-gray-800 font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- TOP HEADER / NAVBAR -->
+  <header class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
+      <!-- Brand & Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="showSection('dashboard')">
+        <div class="w-11 h-11 rounded-full bg-white flex items-center justify-center p-0.5 border border-brand/20 shadow-xs overflow-hidden flex-shrink-0">
+          <img id="navLogoImg" src="app_logo.png" alt="নিসচা লোগো" class="w-full h-full object-contain rounded-full" onerror="this.onerror=null; this.src='app_logo.png';">
+        </div>
+        <div>
+          <h1 id="navOrgTitle" class="text-xl font-bold text-brand leading-none">নিসচা</h1>
+          <p id="navBranchTitle" class="text-xs font-semibold text-gray-500 mt-0.5">কিশোরগঞ্জ সদর উপজেলা শাখা</p>
+        </div>
+      </div>
+
+      <!-- User or Auth Buttons -->
+      <div id="authActions" class="flex items-center space-x-2">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS (Visible when logged in) -->
+  <nav id="appNav" class="bg-white border-b border-gray-200 hidden sticky top-16 z-30 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 flex space-x-1 sm:space-x-3 overflow-x-auto py-1">
+      <button onclick="showSection('dashboard')" id="nav-dashboard" class="nav-btn py-2.5 px-3 text-sm font-semibold border-b-2 border-brand text-brand flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-house"></i> ড্যাশবোর্ড
+      </button>
+      <button onclick="showSection('members')" id="nav-members" class="nav-btn py-2.5 px-3 text-sm font-semibold border-b-2 border-transparent text-gray-600 hover:text-brand flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-users"></i> সদস্যবৃন্দ
+      </button>
+      <button onclick="showSection('activities')" id="nav-activities" class="nav-btn py-2.5 px-3 text-sm font-semibold border-b-2 border-transparent text-gray-600 hover:text-brand flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-calendar-check"></i> কার্যক্রম
+      </button>
+      <button onclick="showSection('donations')" id="nav-donations" class="nav-btn py-2.5 px-3 text-sm font-semibold border-b-2 border-transparent text-gray-600 hover:text-brand flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-hand-holding-heart"></i> অনুদান
+      </button>
+      <button onclick="showSection('fund')" id="nav-fund" class="nav-btn py-2.5 px-3 text-sm font-semibold border-b-2 border-transparent text-gray-600 hover:text-brand flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-wallet"></i> তহবিল স্থিতি
+      </button>
+      <button onclick="showSection('chat')" id="nav-chat" class="nav-btn py-2.5 px-3 text-sm font-semibold border-b-2 border-transparent text-gray-600 hover:text-brand flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-comments"></i> আলোচনা
+      </button>
+      <button onclick="showSection('admin')" id="nav-admin" class="nav-btn py-2.5 px-3 text-sm font-semibold border-b-2 border-transparent text-amber-600 hover:text-amber-700 hidden items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-shield-halved"></i> অ্যাডমিন ও ওয়েবসাইট এডিট
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+
+    <!-- 1. PUBLIC LANDING SECTION (When logged out) -->
+    <section id="section-landing" class="space-y-6 fade-in">
+      <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm text-center max-w-2xl mx-auto">
+        <div class="w-28 h-28 bg-white rounded-full mx-auto flex items-center justify-center p-2 mb-4 border-2 border-brand/30 shadow-md">
+          <img id="landingLogoImg" src="app_logo.png" alt="নিসচা লোগো" class="w-full h-full object-contain rounded-full" onerror="this.onerror=null; this.src='app_logo.png';">
+        </div>
+        <h2 id="landingOrgTitle" class="text-2xl sm:text-3xl font-bold text-gray-900">নিরাপদ সড়ক চাই (নিসচা)</h2>
+        <p id="landingBranchTitle" class="text-lg font-bold text-brand mt-1">কিশোরগঞ্জ সদর উপজেলা শাখা</p>
+        <p id="landingSlogan" class="text-sm font-semibold text-gray-500 mt-1">"পথ যেন হয় শান্তির, মৃত্যুর নয়"</p>
+        <p id="landingAboutText" class="text-gray-600 text-sm mt-4 leading-relaxed">
+          সড়ক দুর্ঘটনা মুক্ত বাংলাদেশ বিনির্মাণে এবং অসহায় মানবতার সেবায় নিবেদিত একটি জাতীয় সামাজিক ও দাতব্য সংগঠন। সংস্থার সদস্য, তহবিল, অনুদান, কার্যক্রম ও জরুরি সেবা পেতে যুক্ত থাকুন।
+        </p>
+
+        <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+          <button onclick="openModal('authModal', 'login')" class="bg-brand hover:bg-brand-dark text-white font-bold py-3 px-8 rounded-xl shadow-sm transition">
+            লগইন করুন
+          </button>
+          <button onclick="openModal('authModal', 'signup')" class="border border-brand text-brand hover:bg-brand-light font-bold py-3 px-8 rounded-xl transition">
+            নতুন সদস্য নিবন্ধন
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons for Public -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <div onclick="openModal('accidentModal')" class="bg-red-50 hover:bg-red-100 border border-red-200 rounded-2xl p-4 flex items-center space-x-4 cursor-pointer transition">
+          <div class="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center text-xl flex-shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-red-700">দুর্ঘটনা রিপোর্ট</h4>
+            <p class="text-xs text-gray-600">কিশোরগঞ্জে সড়ক দুর্ঘটনা তাৎক্ষণিক রিপোর্ট করুন</p>
+          </div>
+        </div>
+
+        <div onclick="openModal('emergencyModal')" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-2xl p-4 flex items-center space-x-4 cursor-pointer transition">
+          <div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl flex-shrink-0">
+            <i class="fa-solid fa-hospital"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-blue-700">জরুরি সেবা ও হেল্পলাইন</h4>
+            <p class="text-xs text-gray-600">৯৯৯, অ্যাম্বুলেন্স, ফায়ার সার্ভিস ও হাসপাতাল</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. DASHBOARD SECTION -->
+    <section id="section-dashboard" class="space-y-6 hidden fade-in">
+      <!-- Welcome Banner -->
+      <div class="bg-gradient-to-r from-brand to-brand-dark rounded-2xl p-6 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span id="dashBranchTitle" class="text-xs uppercase tracking-wider text-green-200 font-bold">কিশোরগঞ্জ সদর উপজেলা শাখা</span>
+          <h2 class="text-2xl font-bold mt-1" id="dashUserName">স্বাগতম, সদস্য!</h2>
+          <p class="text-xs text-green-100 mt-1" id="dashUserRole">সদস্য পদবী: সাধারণ সদস্য</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="openModal('accidentModal')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-1.5 shadow-sm transition">
+            <i class="fa-solid fa-triangle-exclamation"></i> দুর্ঘটনা রিপোর্ট
+          </button>
+          <button onclick="openModal('emergencyModal')" class="bg-white text-brand hover:bg-green-50 font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-1.5 shadow-sm transition">
+            <i class="fa-solid fa-phone"></i> জরুরি সেবা
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm cursor-pointer hover:border-brand transition" onclick="showSection('members')">
+          <div class="w-10 h-10 rounded-full bg-brand-light text-brand flex items-center justify-center text-lg mb-2">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <p class="text-xs text-gray-500 font-medium">মোট সদস্য</p>
+          <p class="text-2xl font-bold text-gray-800" id="statMembers">০ জন</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm cursor-pointer hover:border-emerald-500 transition" onclick="showSection('fund')">
+          <div class="w-10 h-10 rounded-full bg-green-50 text-emerald-600 flex items-center justify-center text-lg mb-2">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <p class="text-xs text-gray-500 font-medium">বর্তমান তহবিল স্থিতি</p>
+          <p class="text-2xl font-bold text-emerald-700" id="statFund">৳ ০</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm cursor-pointer hover:border-amber-500 transition" onclick="showSection('donations')">
+          <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-lg mb-2">
+            <i class="fa-solid fa-hand-holding-heart"></i>
+          </div>
+          <p class="text-xs text-gray-500 font-medium">মোট অনুদান সংগৃহীত</p>
+          <p class="text-2xl font-bold text-amber-700" id="statDonations">৳ ০</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm cursor-pointer hover:border-blue-500 transition" onclick="showSection('activities')">
+          <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-lg mb-2">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <p class="text-xs text-gray-500 font-medium">মোট কার্যক্রম</p>
+          <p class="text-2xl font-bold text-blue-700" id="statActivities">০ টি</p>
+        </div>
+      </div>
+
+      <!-- Announcements Box with Photo Support -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+            <i class="fa-solid fa-bullhorn text-amber-600"></i> সাংগঠনিক নোটিশ ও ঘোষণা
+          </h3>
+          <button id="quickNoticeBtn" onclick="openModal('postNoticeModal')" class="text-xs font-bold text-brand hover:underline hidden">
+            + নোটিশ দিন
+          </button>
+        </div>
+        <div id="dashAnnouncements" class="space-y-4">
+          <div class="bg-white p-6 rounded-2xl border border-gray-100 text-center text-gray-400 text-xs">
+            কোনো নোটিশ নেই
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. MEMBERS SECTION -->
+    <section id="section-members" class="space-y-4 hidden fade-in">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-2xl border border-gray-100">
+        <div>
+          <h3 class="text-lg font-bold text-gray-800">কিশোরগঞ্জ সদর উপজেলা শাখা সদস্য তালিকা</h3>
+          <p class="text-xs text-gray-500" id="memberCountText">মোট ০ জন সদস্য নিবন্ধিত</p>
+        </div>
+        <input type="text" id="memberSearchInput" oninput="filterMembers()" placeholder="নাম, ফোন বা পদবী দিয়ে খুঁজুন..." class="border border-gray-200 rounded-xl px-4 py-2 text-sm w-full sm:w-64 focus:outline-none focus:border-brand">
+      </div>
+
+      <div id="membersList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- 4. ACTIVITIES SECTION (কার্যক্রম) -->
+    <section id="section-activities" class="space-y-4 hidden fade-in">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-2xl border border-gray-100">
+        <div>
+          <h3 class="text-lg font-bold text-gray-800">সংগঠনের কার্যক্রম ও কর্মসূচি</h3>
+          <p class="text-xs text-gray-500">সড়ক নিরাপত্তা সচেতনতা, লিফলেট বিতরণ ও সেবা কার্যক্রম</p>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <!-- Filters -->
+          <div class="inline-flex rounded-xl bg-gray-100 p-1 text-xs font-semibold">
+            <button onclick="filterActivities('all')" id="actFilter-all" class="px-3 py-1.5 rounded-lg bg-white shadow-xs text-brand font-bold">সকল</button>
+            <button onclick="filterActivities('ongoing')" id="actFilter-ongoing" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-brand">চলমান</button>
+            <button onclick="filterActivities('completed')" id="actFilter-completed" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-brand">সম্পন্ন</button>
+          </div>
+          <button id="addActivityBtn" onclick="openModal('addActivityModal')" class="bg-brand text-white font-bold text-xs py-2 px-3.5 rounded-xl flex items-center gap-1.5 shadow-sm hover:bg-brand-dark transition whitespace-nowrap hidden">
+            <i class="fa-solid fa-plus"></i> নতুন কার্যক্রম
+          </button>
+        </div>
+      </div>
+
+      <div id="activitiesList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- 5. DONATIONS SECTION -->
+    <section id="section-donations" class="space-y-4 hidden fade-in">
+      <div class="bg-white p-5 rounded-2xl border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-gray-800">সংগৃহীত অনুদানের তালিকা</h3>
+          <p class="text-xs text-gray-500">স্বচ্ছতা ও মানবতার কল্যাণে সদস্যদের অনুদান</p>
+        </div>
+        <div id="adminDonationBtn" class="hidden">
+          <button onclick="openModal('addDonationModal')" class="bg-brand hover:bg-brand-dark text-white font-bold text-sm py-2 px-4 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+            <i class="fa-solid fa-plus"></i> অনুদান যোগ করুন
+          </button>
+        </div>
+      </div>
+
+      <!-- Donation Account Info Box (Dynamic from Settings) -->
+      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h4 class="font-bold text-sm text-emerald-900"><i class="fa-solid fa-hand-holding-heart mr-1.5"></i> সংস্থায় অনুদান পাঠানোর মাধ্যম:</h4>
+          <p class="text-xs text-emerald-800 mt-1" id="donationAccountsText">বিকাশ / নগদ: ০১৭১১XXXXXX (পার্সোনাল)</p>
+        </div>
+        <button onclick="openModal('emergencyModal')" class="text-xs bg-emerald-600 text-white font-bold py-1.5 px-3 rounded-lg hover:bg-emerald-700">
+          যোগাযোগ করুন
+        </button>
+      </div>
+
+      <div id="donationsList" class="space-y-3">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- 6. FUND SECTION -->
+    <section id="section-fund" class="space-y-4 hidden fade-in">
+      <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+        <p class="text-sm font-semibold text-gray-500">সংস্থার বর্তমান ব্যালেন্স</p>
+        <p class="text-3xl font-bold text-brand mt-1" id="fundTotalBalance">৳ ০</p>
+        <div class="mt-4 flex justify-center gap-8 text-sm">
+          <div><span class="text-gray-400">মোট জমা:</span> <span class="font-bold text-emerald-600" id="fundTotalIncome">৳ ০</span></div>
+          <div><span class="text-gray-400">মোট খরচ:</span> <span class="font-bold text-red-600" id="fundTotalExpense">৳ ০</span></div>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center px-1">
+        <h4 class="font-bold text-sm text-gray-700">আয় ও ব্যয়ের লেজার হিসাব</h4>
+        <div id="adminExpenseBtn" class="hidden">
+          <button onclick="openModal('addExpenseModal')" class="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 py-1.5 px-3 rounded-lg border border-red-200">
+            + ব্যয় এন্ট্রি
+          </button>
+        </div>
+      </div>
+
+      <div id="fundEntriesList" class="space-y-2">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- 7. CHAT SECTION -->
+    <section id="section-chat" class="space-y-4 hidden fade-in">
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col h-[580px] shadow-sm">
+        <div class="bg-brand p-4 text-white flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-users text-xl"></i>
+            <div>
+              <h4 class="font-bold leading-tight">নিসচা ফোরাম (গ্রুপ চ্যাট)</h4>
+              <p class="text-xs text-green-100">সদস্যদের সাথে সরাসরি আলোচনা</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="chatMessages" class="flex-grow p-4 overflow-y-auto space-y-3 bg-[#F8FAF9]">
+          <!-- Injected by JS -->
+        </div>
+
+        <div class="p-3 bg-white border-t border-gray-100 flex gap-2">
+          <input type="text" id="chatInput" placeholder="আপনার বার্তা লিখুন..." class="flex-grow border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+          <button onclick="sendChatMessage()" class="bg-brand hover:bg-brand-dark text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-paper-plane"></i> পাঠান
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. ADMIN & WEBSITE EDIT SECTION -->
+    <section id="section-admin" class="space-y-6 hidden fade-in">
+      <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-shield-halved text-3xl text-amber-600"></i>
+          <div>
+            <h4 class="font-bold text-amber-900 text-lg">কেন্দ্রীয় অ্যাডমিন প্যানেল ও ওয়েবসাইট এডিটর</h4>
+            <p class="text-xs text-amber-700">ওয়েবসাইটের লোগো, তথ্য, কার্যক্রম, ঘোষণা ও সদস্য নিয়ন্ত্রণ করুন</p>
+          </div>
+        </div>
+        <button onclick="openModal('editSiteModal')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm py-2 px-4 rounded-xl flex items-center gap-2 shadow-sm transition">
+          <i class="fa-solid fa-pen-to-square"></i> ওয়েবসাইট এডিট ও সেটিংস
+        </button>
+      </div>
+
+      <!-- Quick Action Cards for Admin -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button onclick="openModal('editSiteModal')" class="bg-white border border-gray-100 shadow-sm p-4 rounded-2xl text-left hover:border-amber-500 transition">
+          <i class="fa-solid fa-image text-amber-600 text-xl mb-1"></i>
+          <p class="font-bold text-sm text-gray-800">লোগো ও তথ্য এডিট</p>
+          <p class="text-[11px] text-gray-500">ওয়েবসাইটের নাম ও লোগো পরিবর্তন</p>
+        </button>
+
+        <button onclick="openModal('addActivityModal')" class="bg-white border border-gray-100 shadow-sm p-4 rounded-2xl text-left hover:border-brand transition">
+          <i class="fa-solid fa-calendar-plus text-brand text-xl mb-1"></i>
+          <p class="font-bold text-sm text-gray-800">নতুন কার্যক্রম</p>
+          <p class="text-[11px] text-gray-500">কর্মসূচি ও ছবি যোগ করুন</p>
+        </button>
+
+        <button onclick="openModal('postNoticeModal')" class="bg-white border border-gray-100 shadow-sm p-4 rounded-2xl text-left hover:border-blue-500 transition">
+          <i class="fa-solid fa-bullhorn text-blue-600 text-xl mb-1"></i>
+          <p class="font-bold text-sm text-gray-800">ছবিসহ নোটিশ পোস্ট</p>
+          <p class="text-[11px] text-gray-500">ড্যাশবোর্ডে নোটিশ দিন</p>
+        </button>
+
+        <button onclick="openModal('addDonationModal')" class="bg-white border border-gray-100 shadow-sm p-4 rounded-2xl text-left hover:border-emerald-500 transition">
+          <i class="fa-solid fa-hand-holding-dollar text-emerald-600 text-xl mb-1"></i>
+          <p class="font-bold text-sm text-gray-800">অনুদান এন্ট্রি</p>
+          <p class="text-[11px] text-gray-500">তহবিলে টাকা যোগ করুন</p>
+        </button>
+      </div>
+
+      <!-- Accident Reports Review for Admin -->
+      <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-3">
+        <h4 class="font-bold text-red-600 flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation"></i> আগত সড়ক দুর্ঘটনা রিপোর্টসমূহ
+        </h4>
+        <div id="adminAccidentList" class="space-y-3">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-gray-100 py-6 text-center text-xs text-gray-500 mt-auto">
+    <div class="max-w-6xl mx-auto px-4 space-y-1">
+      <p id="footerTitle" class="font-bold text-gray-700">নিরাপদ সড়ক চাই (নিসচা) - কিশোরগঞ্জ সদর উপজেলা শাখা</p>
+      <p id="footerSlogan">"পথ যেন হয় শান্তির, মৃত্যুর নয়"</p>
+      <p class="text-gray-400">© <span id="currentYear"></span> সর্বস্বত্ব সংরক্ষিত</p>
+    </div>
+  </footer>
+
+  <!-- ======================== ALL MODALS ======================== -->
+
+  <!-- 1. AUTH MODAL (Login / Signup) -->
+  <div id="authModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('authModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex border-b border-gray-100 pb-3 mb-4">
+        <button id="tabBtnLogin" onclick="switchAuthTab('login')" class="flex-1 text-center font-bold pb-2 text-brand border-b-2 border-brand">লগইন</button>
+        <button id="tabBtnSignup" onclick="switchAuthTab('signup')" class="flex-1 text-center font-bold pb-2 text-gray-400 border-b-2 border-transparent">নতুন সদস্য নিবন্ধন</button>
+      </div>
+
+      <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3">
+        <div id="signupNameField" class="hidden">
+          <label class="block text-xs font-bold text-gray-700 mb-1">পূর্ণ নাম *</label>
+          <input type="text" id="authName" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand" placeholder="আপনার পূর্ণ নাম লিখুন">
+        </div>
+
+        <div id="signupPhoneField" class="hidden">
+          <label class="block text-xs font-bold text-gray-700 mb-1">মোবাইল নম্বর * (যোগাযোগের জন্য আবশ্যক)</label>
+          <input type="tel" id="authPhone" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand" placeholder="যেমন: 01711XXXXXX">
+        </div>
+
+        <div>
+          <label id="authEmailLabel" class="block text-xs font-bold text-gray-700 mb-1">ইমেইল অথবা মোবাইল নম্বর *</label>
+          <input type="text" id="authEmail" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand" placeholder="ইমেইল বা মোবাইল নম্বর দিন">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">পাসওয়ার্ড *</label>
+          <input type="password" id="authPassword" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand" placeholder="কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড">
+        </div>
+
+        <p id="authError" class="text-xs text-red-600 hidden font-semibold"></p>
+
+        <button type="submit" id="authSubmitBtn" class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-3 rounded-xl transition mt-2">
+          লগইন করুন
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. EDIT WEBSITE SETTINGS MODAL (Admin Full Customization) -->
+  <div id="editSiteModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('editSiteModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-2 text-amber-600 mb-2">
+        <i class="fa-solid fa-pen-to-square text-2xl"></i>
+        <h3 class="text-lg font-bold">ওয়েবসাইট সম্পাদনা ও কাস্টমাইজেশন</h3>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">অ্যাডমিন হিসেবে আপনি সম্পূর্ণ ওয়েবসাইটের লোগো, নাম, হেল্পলাইন ও তথ্য পরিবর্তন করতে পারেন।</p>
+
+      <form onsubmit="handleSaveSiteConfig(event)" class="space-y-4">
+        <!-- Logo Section -->
+        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
+          <label class="block text-xs font-bold text-gray-800">ওয়েবসাইটের লোগো পরিবর্তন:</label>
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-full bg-white p-1 border border-gray-300 flex items-center justify-center shadow-xs flex-shrink-0">
+              <img id="cfgLogoPreview" src="app_logo.png" alt="Logo Preview" class="w-full h-full object-contain rounded-full" onerror="this.src='app_logo.png'">
+            </div>
+            <div class="space-y-2 flex-grow">
+              <input type="file" id="cfgLogoFileInput" accept="image/*" onchange="previewLogoFile(event)" class="block w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-light file:text-brand hover:file:bg-green-100 cursor-pointer">
+              <input type="text" id="cfgLogoUrlInput" placeholder="অথবা সরাসরি ছবির URL দিন" class="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-brand">
+              <button type="button" onclick="resetToDefaultLogo()" class="text-[11px] text-red-600 font-semibold hover:underline">
+                <i class="fa-solid fa-rotate-left mr-1"></i>ডিফল্ট লোগোতে ফিরুন
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Branding text -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">সংস্থার নাম</label>
+            <input type="text" id="cfgOrgTitle" value="নিরাপদ সড়ক চাই (নিসচা)" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">শাখা / সাব-টাইটেল</label>
+            <input type="text" id="cfgBranchTitle" value="কিশোরগঞ্জ সদর উপজেলা শাখা" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">স্লোগান</label>
+          <input type="text" id="cfgSlogan" value="&quot;পথ যেন হয় শান্তির, মৃত্যুর নয়&quot;" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">সংস্থার পরিচিতি ও লক্ষ্য (হোমপেজ বিবরণ)</label>
+          <textarea id="cfgAboutText" rows="2" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand"></textarea>
+        </div>
+
+        <!-- Helpline & Emergency -->
+        <div class="bg-blue-50/60 p-4 rounded-2xl border border-blue-200 space-y-3">
+          <label class="block text-xs font-bold text-blue-900">জরুরি হেল্পলাইন নম্বরসমূহ:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <span class="text-[11px] text-gray-500 font-bold">কিশোরগঞ্জ সদর থানা</span>
+              <input type="text" id="cfgPhonePolice" value="01713373400" class="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <span class="text-[11px] text-gray-500 font-bold">কিশোরগঞ্জ ফায়ার সার্ভিস</span>
+              <input type="text" id="cfgPhoneFire" value="01730002444" class="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <span class="text-[11px] text-gray-500 font-bold">কিশোরগঞ্জ ২৫০ শয্যা হাসপাতাল</span>
+              <input type="text" id="cfgPhoneHospital" value="01712586790" class="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <span class="text-[11px] text-gray-500 font-bold">জাতীয় জরুরি সেবা ও অ্যাম্বুলেন্স</span>
+              <input type="text" id="cfgPhoneNational" value="999 / 16263" class="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Donation Info -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">অনুদান নম্বর ও মাধ্যম (বিকাশ / নগদ)</label>
+          <input type="text" id="cfgDonationInfo" value="বিকাশ / নগদ: ০১৭১১XXXXXX (পার্সোনাল)" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+        </div>
+
+        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition shadow-md">
+          <i class="fa-solid fa-floppy-disk mr-1.5"></i> সেটিংস সংরক্ষণ করুন
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. ADD ACTIVITY MODAL (কার্যক্রম যোগ) -->
+  <div id="addActivityModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('addActivityModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-2 text-brand mb-3">
+        <i class="fa-solid fa-calendar-plus text-2xl"></i>
+        <h3 class="text-lg font-bold">নতুন কার্যক্রম / কর্মসূচি যোগ</h3>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">সংস্থার চলমান বা সমাপ্ত কোনো কর্মসূচির বিবরণ ও ছবি আপলোড করুন।</p>
+
+      <form onsubmit="handleActivitySubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">কার্যক্রমের শিরোনাম *</label>
+          <input type="text" id="actTitle" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand" placeholder="যেমন: সড়ক সচেতনতায় লিফলেট বিতরণ">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">বিস্তারিত বিবরণ *</label>
+          <textarea id="actDesc" rows="3" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand" placeholder="কর্মসূচির উদ্দেশ্য ও বাস্তবায়ন সম্পর্কে লিখুন"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">অবস্থা (স্ট্যাটাস) *</label>
+            <select id="actStatus" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand bg-white">
+              <option value="ongoing">চলমান (Ongoing)</option>
+              <option value="completed">সম্পন্ন (Completed)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">ব্যয় বা খরচ (৳)</label>
+            <input type="number" id="actSpent" value="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">স্থান / এলাকা</label>
+            <input type="text" id="actLocation" placeholder="যেমন: পুরান থানা মোড়" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">তারিখ</label>
+            <input type="text" id="actDate" placeholder="যেমন: ১২ নভেম্বর ২০২৪" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+          </div>
+        </div>
+
+        <!-- Activity Photo -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">কর্মসূচির ছবি (ঐচ্ছিক)</label>
+          <input type="file" id="actImageFile" accept="image/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-gray-100 file:font-semibold">
+          <input type="text" id="actImageUrl" placeholder="অথবা ছবির URL দিন" class="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-brand mt-1.5">
+        </div>
+
+        <button type="submit" id="actSubmitBtn" class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-2.5 rounded-xl transition mt-2">
+          কার্যক্রম প্রকাশ করুন
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. POST NOTICE WITH PHOTO MODAL (ছবিসহ নোটিশ প্রকাশ) -->
+  <div id="postNoticeModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('postNoticeModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-2 text-amber-600 mb-3">
+        <i class="fa-solid fa-bullhorn text-2xl"></i>
+        <h3 class="text-lg font-bold">ছবিসহ নতুন ঘোষণা / নোটিশ প্রকাশ</h3>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">ড্যাশবোর্ডে সকল সদস্য ও সাধারণ মানুষের জন্য নোটিশ পোস্ট করুন।</p>
+
+      <form onsubmit="handleNoticeSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">ঘোষণার শিরোনাম *</label>
+          <input type="text" id="notTitle" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="যেমন: জরুরি মাসিক সাধারণ সভা">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">বিস্তারিত বিবরণ *</label>
+          <textarea id="notDesc" rows="3" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="ঘোষণার বিষয়বস্তু লিখুন..."></textarea>
+        </div>
+
+        <!-- Notice Photo -->
+        <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-200 space-y-2">
+          <label class="block text-xs font-bold text-amber-900"><i class="fa-solid fa-image mr-1"></i> নোটিশের সাথে ছবি যুক্ত করুন (ঐচ্ছিক):</label>
+          <input type="file" id="notImageFile" accept="image/*" class="w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-100 file:font-semibold">
+          <input type="text" id="notImageUrl" placeholder="অথবা ছবির সরাসরি ওয়েব লিঙ্ক দিন" class="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-amber-500 bg-white">
+        </div>
+
+        <button type="submit" id="notSubmitBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition shadow-sm">
+          নোটিশ প্রকাশ করুন
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. ACCIDENT REPORT MODAL -->
+  <div id="accidentModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('accidentModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-2 text-red-600 mb-3">
+        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+        <h3 class="text-lg font-bold">সড়ক দুর্ঘটনা রিপোর্ট করুন</h3>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">কিশোরগঞ্জ সদর উপজেলা ও সংলগ্ন এলাকায় দুর্ঘটনা ঘটলে দ্রুত তথ্য দিন।</p>
+
+      <form onsubmit="handleAccidentSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">দুর্ঘটনার স্থান / এলাকা *</label>
+          <input type="text" id="accLocation" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500" placeholder="যেমন: বটতলা মোড় / ঢাকা-কিশোরগঞ্জ মহাসড়ক">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">কী ঘটেছে / বিবরণ *</label>
+          <textarea id="accDesc" rows="3" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500" placeholder="যেমন: বাস ও সিএনজি সংঘর্ষ, জরুরি উদ্ধার ও অ্যাম্বুলেন্স প্রয়োজন"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">আহতের আনুমানিক সংখ্যা</label>
+          <input type="text" id="accInjured" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500" placeholder="যেমন: ৩-৪ জন">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">যোগাযোগের মোবাইল নম্বর *</label>
+          <input type="tel" id="accPhone" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500" placeholder="আপনার ফোন নম্বর">
+        </div>
+
+        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl transition">
+          রিপোর্ট পাঠান
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. EMERGENCY HELPLINE MODAL -->
+  <div id="emergencyModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('emergencyModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-2 text-blue-600 mb-2">
+        <i class="fa-solid fa-hospital text-2xl"></i>
+        <h3 class="text-lg font-bold">জরুরি সেবা ও হেল্পলাইন</h3>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">কিশোরগঞ্জ সদর ও জাতীয় জরুরি প্রয়োজনে সরাসরি ডায়াল করুন:</p>
+
+      <div class="space-y-2.5">
+        <a href="tel:999" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition border border-gray-100">
+          <div>
+            <p class="font-bold text-sm text-gray-800">জাতীয় জরুরি সেবা (৯৯৯)</p>
+            <p class="text-xs text-gray-500">পুলিশ, অ্যাম্বুলেন্স, ফায়ার সার্ভিস</p>
+          </div>
+          <span class="text-blue-600 font-bold text-sm flex items-center gap-1"><i class="fa-solid fa-phone"></i> ডায়াল</span>
+        </a>
+
+        <a href="tel:16263" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition border border-gray-100">
+          <div>
+            <p class="font-bold text-sm text-gray-800">স্বাস্থ্য বাতায়ন (১৬২৬৩)</p>
+            <p class="text-xs text-gray-500">জরুরি অ্যাম্বুলেন্স ও ডাক্তার পরামর্শ</p>
+          </div>
+          <span class="text-blue-600 font-bold text-sm flex items-center gap-1"><i class="fa-solid fa-phone"></i> ডায়াল</span>
+        </a>
+
+        <a id="phonePoliceLink" href="tel:01713373400" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition border border-gray-100">
+          <div>
+            <p class="font-bold text-sm text-gray-800">কিশোরগঞ্জ সদর থানা</p>
+            <p class="text-xs text-gray-500" id="phonePoliceText">০১৭১৩-৩৭৩৪০০</p>
+          </div>
+          <span class="text-blue-600 font-bold text-sm flex items-center gap-1"><i class="fa-solid fa-phone"></i> ডায়াল</span>
+        </a>
+
+        <a id="phoneFireLink" href="tel:01730002444" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition border border-gray-100">
+          <div>
+            <p class="font-bold text-sm text-gray-800">কিশোরগঞ্জ ফায়ার স্টেশন</p>
+            <p class="text-xs text-gray-500" id="phoneFireText">০১৭৩০০-০২৪৪৪</p>
+          </div>
+          <span class="text-blue-600 font-bold text-sm flex items-center gap-1"><i class="fa-solid fa-phone"></i> ডায়াল</span>
+        </a>
+
+        <a id="phoneHospitalLink" href="tel:01712586790" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition border border-gray-100">
+          <div>
+            <p class="font-bold text-sm text-gray-800">কিশোরগঞ্জ ২৫০ শয্যা জেনারেল হাসপাতাল</p>
+            <p class="text-xs text-gray-500" id="phoneHospitalText">০১৭১২-৫৮৬৭৯০</p>
+          </div>
+          <span class="text-blue-600 font-bold text-sm flex items-center gap-1"><i class="fa-solid fa-phone"></i> ডায়াল</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. ADD DONATION MODAL -->
+  <div id="addDonationModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('addDonationModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 class="text-lg font-bold text-brand mb-4">নতুন অনুদান এন্ট্রি</h3>
+      <form onsubmit="handleDonationSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">দাতার নাম *</label>
+          <input type="text" id="donDonorName" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">অনুদানের পরিমাণ (৳) *</label>
+          <input type="number" id="donAmount" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">পেমেন্ট মেথড</label>
+          <select id="donMethod" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand bg-white">
+            <option value="বিকাশ">বিকাশ (bKash)</option>
+            <option value="নগদ">নগদ (Nagad)</option>
+            <option value="ব্যাংক">ব্যাংক ট্রান্সফার</option>
+            <option value="নগদ ক্যাশ">নগদ ক্যাশ</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">মন্তব্য (ঐচ্ছিক)</label>
+          <input type="text" id="donNote" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand">
+        </div>
+        <button type="submit" class="w-full bg-brand text-white font-bold py-2.5 rounded-xl">সংরক্ষণ ও তহবিলে যোগ</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 8. ADD EXPENSE MODAL -->
+  <div id="addExpenseModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('addExpenseModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 class="text-lg font-bold text-red-600 mb-4">সাংগঠনিক ব্যয় / খরচ এন্ট্রি</h3>
+      <form onsubmit="handleExpenseSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">ব্যয়ের বিবরণ *</label>
+          <input type="text" id="expTitle" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">খরচের পরিমাণ (৳) *</label>
+          <input type="number" id="expAmount" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">খাত / ক্যাটাগরি</label>
+          <input type="text" id="expCategory" value="সাংগঠনিক খরচ" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+        </div>
+        <button type="submit" class="w-full bg-red-600 text-white font-bold py-2.5 rounded-xl">ব্যয় রেকর্ড করুন</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================== APPLICATION JAVASCRIPT ======================== -->
+  <script>
+    // 1. Firebase Initialization from google-services.json
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8YNbJeDGFjb-lIQ3ErULmJnDgiu_D6Dc",
+      authDomain: "mahmudullah-mridul-01-358dc.firebaseapp.com",
+      databaseURL: "https://mahmudullah-mridul-01-358dc-default-rtdb.firebaseio.com",
+      projectId: "mahmudullah-mridul-01-358dc",
+      storageBucket: "mahmudullah-mridul-01-358dc.firebasestorage.app",
+      messagingSenderId: "205711817159",
+      appId: "1:205711817159:android:4c676f574ec4cdb81941e2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const rtdb = firebase.database();
+
+    const SUPER_ADMIN_UID = "6RzNVpCPIiYh8x6mPH76fyHnxZz1";
+    let currentUserProfile = null;
+    let authMode = 'login';
+    let allMembersCache = [];
+    let allActivitiesCache = [];
+    let currentActivityFilter = 'all';
+    let siteConfigCache = {};
+
+    document.getElementById('currentYear').innerText = new Date().getFullYear();
+
+    // 2. Real-time Site Settings Listener (Admin Customization)
+    function initSiteSettings() {
+      db.collection('settings').doc('site_config').onSnapshot(doc => {
+        if (doc.exists) {
+          siteConfigCache = doc.data();
+          applySiteConfig(siteConfigCache);
+        } else {
+          // Initialize defaults
+          const defaults = {
+            orgTitle: "নিরাপদ সড়ক চাই (নিসচা)",
+            branchTitle: "কিশোরগঞ্জ সদর উপজেলা শাখা",
+            slogan: "\"পথ যেন হয় শান্তির, মৃত্যুর নয়\"",
+            aboutText: "সড়ক দুর্ঘটনা মুক্ত বাংলাদেশ বিনির্মাণে এবং অসহায় মানবতার সেবায় নিবেদিত একটি জাতীয় সামাজিক ও দাতব্য সংগঠন। সংস্থার সদস্য, তহবিল, অনুদান, কার্যক্রম ও জরুরি সেবা পেতে যুক্ত থাকুন।",
+            logoUrl: "app_logo.png",
+            phonePolice: "01713373400",
+            phoneFire: "01730002444",
+            phoneHospital: "01712586790",
+            phoneNational: "999 / 16263",
+            donationInfo: "বিকাশ / নগদ: ০১৭১১XXXXXX (পার্সোনাল)"
+          };
+          applySiteConfig(defaults);
+        }
+      });
+    }
+
+    function applySiteConfig(cfg) {
+      const logo = cfg.logoUrl || 'app_logo.png';
+      const org = cfg.orgTitle || 'নিসচা';
+      const branch = cfg.branchTitle || 'কিশোরগঞ্জ সদর উপজেলা শাখা';
+      const slogan = cfg.slogan || '"পথ যেন হয় শান্তির, মৃত্যুর নয়"';
+      const about = cfg.aboutText || '';
+
+      // Update Logos
+      document.getElementById('navLogoImg').src = logo;
+      document.getElementById('landingLogoImg').src = logo;
+      document.getElementById('cfgLogoPreview').src = logo;
+
+      // Update Titles & Slogans
+      document.getElementById('navOrgTitle').innerText = org.includes('নিসচা') ? 'নিসচা' : org;
+      document.getElementById('navBranchTitle').innerText = branch;
+      document.getElementById('landingOrgTitle').innerText = org;
+      document.getElementById('landingBranchTitle').innerText = branch;
+      document.getElementById('landingSlogan').innerText = slogan;
+      if (about) document.getElementById('landingAboutText').innerText = about;
+      document.getElementById('dashBranchTitle').innerText = branch;
+      document.getElementById('footerTitle').innerText = `${org} - ${branch}`;
+      document.getElementById('footerSlogan').innerText = slogan;
+
+      // Update Emergency Phones
+      if (cfg.phonePolice) {
+        document.getElementById('phonePoliceLink').href = `tel:${cfg.phonePolice}`;
+        document.getElementById('phonePoliceText').innerText = cfg.phonePolice;
+      }
+      if (cfg.phoneFire) {
+        document.getElementById('phoneFireLink').href = `tel:${cfg.phoneFire}`;
+        document.getElementById('phoneFireText').innerText = cfg.phoneFire;
+      }
+      if (cfg.phoneHospital) {
+        document.getElementById('phoneHospitalLink').href = `tel:${cfg.phoneHospital}`;
+        document.getElementById('phoneHospitalText').innerText = cfg.phoneHospital;
+      }
+
+      // Update Donation Accounts Text
+      if (cfg.donationInfo) {
+        document.getElementById('donationAccountsText').innerText = cfg.donationInfo;
+      }
+
+      // Sync Edit Form Fields
+      document.getElementById('cfgOrgTitle').value = cfg.orgTitle || "নিরাপদ সড়ক চাই (নিসচা)";
+      document.getElementById('cfgBranchTitle').value = cfg.branchTitle || "কিশোরগঞ্জ সদর উপজেলা শাখা";
+      document.getElementById('cfgSlogan').value = cfg.slogan || "\"পথ যেন হয় শান্তির, মৃত্যুর নয়\"";
+      document.getElementById('cfgAboutText').value = cfg.aboutText || "";
+      document.getElementById('cfgPhonePolice').value = cfg.phonePolice || "01713373400";
+      document.getElementById('cfgPhoneFire').value = cfg.phoneFire || "01730002444";
+      document.getElementById('cfgPhoneHospital').value = cfg.phoneHospital || "01712586790";
+      document.getElementById('cfgPhoneNational').value = cfg.phoneNational || "999 / 16263";
+      document.getElementById('cfgDonationInfo').value = cfg.donationInfo || "বিকাশ / নগদ: ০১৭১১XXXXXX (পার্সোনাল)";
+    }
+
+    // Initialize Site Settings on load
+    initSiteSettings();
+
+    // 3. Auth State Observer
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const isSuper = (user.uid === SUPER_ADMIN_UID);
+        const userDocRef = db.collection('users').doc(user.uid);
+        const doc = await userDocRef.get();
+
+        if (doc.exists) {
+          currentUserProfile = doc.data();
+          if (isSuper && currentUserProfile.role !== 'admin') {
+            await userDocRef.update({ role: 'admin' });
+            currentUserProfile.role = 'admin';
+          }
+        } else {
+          currentUserProfile = {
+            uid: user.uid,
+            name: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            phone: user.phoneNumber || '',
+            role: isSuper ? 'admin' : 'member',
+            joinedAt: Date.now()
+          };
+          await userDocRef.set(currentUserProfile);
+        }
+
+        renderLoggedInUI();
+        loadAllData();
+      } else {
+        currentUserProfile = null;
+        renderLoggedOutUI();
+      }
+    });
+
+    function renderLoggedInUI() {
+      document.getElementById('appNav').classList.remove('hidden');
+      document.getElementById('section-landing').classList.add('hidden');
+      showSection('dashboard');
+
+      const isAdm = currentUserProfile.role === 'admin' || currentUserProfile.uid === SUPER_ADMIN_UID;
+      if (isAdm) {
+        document.getElementById('nav-admin').classList.remove('hidden');
+        document.getElementById('nav-admin').classList.add('flex');
+        document.getElementById('quickNoticeBtn')?.classList.remove('hidden');
+        document.getElementById('adminDonationBtn')?.classList.remove('hidden');
+        document.getElementById('adminExpenseBtn')?.classList.remove('hidden');
+        document.getElementById('addActivityBtn')?.classList.remove('hidden');
+      }
+
+      document.getElementById('dashUserName').innerText = `স্বাগতম, ${currentUserProfile.name}!`;
+      document.getElementById('dashUserRole').innerText = `সদস্য পদবী: ${currentUserProfile.uid === SUPER_ADMIN_UID ? 'সুপার অ্যাডমিন' : (currentUserProfile.role === 'admin' ? 'অ্যাডমিন' : 'সাধারণ সদস্য')}`;
+
+      document.getElementById('authActions').innerHTML = `
+        <span class="text-xs font-semibold text-gray-700 hidden sm:inline"><i class="fa-solid fa-user-circle mr-1 text-brand"></i>${currentUserProfile.name}</span>
+        <button onclick="auth.signOut()" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs py-2 px-3 rounded-lg border border-red-200 transition">
+          লগআউট
+        </button>
+      `;
+    }
+
+    function renderLoggedOutUI() {
+      document.getElementById('appNav').classList.add('hidden');
+      document.getElementById('section-landing').classList.remove('hidden');
+      document.querySelectorAll('main > section').forEach(s => {
+        if (s.id !== 'section-landing') s.classList.add('hidden');
+      });
+
+      document.getElementById('authActions').innerHTML = `
+        <button onclick="openModal('authModal', 'login')" class="bg-brand text-white font-bold text-xs py-2 px-3 rounded-lg shadow-sm">
+          লগইন
+        </button>
+        <button onclick="openModal('authModal', 'signup')" class="border border-brand text-brand font-bold text-xs py-2 px-3 rounded-lg">
+          নিবন্ধন
+        </button>
+      `;
+    }
+
+    // 4. Tab Navigation
+    function showSection(name) {
+      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+      const target = document.getElementById(`section-${name}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('border-brand', 'text-brand');
+        btn.classList.add('border-transparent', 'text-gray-600');
+      });
+      const activeBtn = document.getElementById(`nav-${name}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-gray-600');
+        activeBtn.classList.add('border-brand', 'text-brand');
+      }
+    }
+
+    // 5. Auth Modal Logic
+    function switchAuthTab(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById('tabBtnLogin');
+      const tabSignup = document.getElementById('tabBtnSignup');
+      const nameField = document.getElementById('signupNameField');
+      const phoneField = document.getElementById('signupPhoneField');
+      const emailLabel = document.getElementById('authEmailLabel');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      const errBox = document.getElementById('authError');
+      errBox.classList.add('hidden');
+
+      if (mode === 'login') {
+        tabLogin.className = 'flex-1 text-center font-bold pb-2 text-brand border-b-2 border-brand';
+        tabSignup.className = 'flex-1 text-center font-bold pb-2 text-gray-400 border-b-2 border-transparent';
+        nameField.classList.add('hidden');
+        phoneField.classList.add('hidden');
+        emailLabel.innerText = "ইমেইল অথবা মোবাইল নম্বর *";
+        document.getElementById('authEmail').placeholder = "ইমেইল বা মোবাইল নম্বর দিন";
+        submitBtn.innerText = "লগইন করুন";
+      } else {
+        tabSignup.className = 'flex-1 text-center font-bold pb-2 text-brand border-b-2 border-brand';
+        tabLogin.className = 'flex-1 text-center font-bold pb-2 text-gray-400 border-b-2 border-transparent';
+        nameField.classList.remove('hidden');
+        phoneField.classList.remove('hidden');
+        emailLabel.innerText = "ইমেইল ঠিকানা (ঐচ্ছিক)";
+        document.getElementById('authEmail').placeholder = "ইমেইল (যদি থাকে)";
+        submitBtn.innerText = "নিবন্ধন সম্পন্ন করুন";
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('authError');
+      errBox.classList.add('hidden');
+
+      const emailOrPhone = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value.trim();
+
+      try {
+        if (authMode === 'login') {
+          let emailToUse = emailOrPhone;
+          if (!emailOrPhone.includes('@')) {
+            const cleanPhone = emailOrPhone.replace(/[\s-]/g, '');
+            const query = await db.collection('users').where('phone', '==', cleanPhone).get();
+            if (!query.empty) {
+              emailToUse = query.docs[0].data().email || `${cleanPhone}@nischa.org`;
+            } else {
+              emailToUse = `${cleanPhone}@nischa.org`;
+            }
+          }
+          await auth.signInWithEmailAndPassword(emailToUse, password);
+          closeModal('authModal');
+        } else {
+          const name = document.getElementById('authName').value.trim();
+          const phone = document.getElementById('authPhone').value.trim();
+          if (!name || !phone) {
+            errBox.innerText = "পূর্ণ নাম এবং মোবাইল নম্বর আবশ্যক!";
+            errBox.classList.remove('hidden');
+            return;
+          }
+
+          const cleanPhone = phone.replace(/[\s-]/g, '');
+          const emailToUse = emailOrPhone.includes('@') ? emailOrPhone : `${cleanPhone}@nischa.org`;
+
+          const cred = await auth.createUserWithEmailAndPassword(emailToUse, password);
+          await db.collection('users').doc(cred.user.uid).set({
+            uid: cred.user.uid,
+            name: name,
+            email: emailToUse,
+            phone: phone,
+            role: cred.user.uid === SUPER_ADMIN_UID ? 'admin' : 'member',
+            joinedAt: Date.now()
+          });
+          closeModal('authModal');
+        }
+      } catch (err) {
+        errBox.innerText = err.message || "সমস্যা দেখা দিয়েছে";
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    // Modal Helpers
+    function openModal(id, mode) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        if (id === 'authModal' && mode) switchAuthTab(mode);
+      }
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+
+    // 6. Helper: Image Compression to Data-URL
+    function compressImageFile(file, maxWidth = 900, maxHeight = 900, quality = 0.75) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = err => reject(err);
+        };
+        reader.onerror = err => reject(err);
+      });
+    }
+
+    // 7. Data Loaders
+    function loadAllData() {
+      // 1. Members
+      db.collection('users').orderBy('joinedAt', 'desc').onSnapshot(snap => {
+        allMembersCache = snap.docs.map(d => d.data());
+        document.getElementById('statMembers').innerText = `${allMembersCache.length} জন`;
+        document.getElementById('memberCountText').innerText = `মোট ${allMembersCache.length} জন সদস্য নিবন্ধিত`;
+        renderMembersList(allMembersCache);
+      });
+
+      // 2. Fund & Donations
+      db.collection('fund_ledger').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        let income = 0;
+        let expense = 0;
+        const listDiv = document.getElementById('fundEntriesList');
+        listDiv.innerHTML = '';
+
+        snap.docs.forEach(doc => {
+          const item = doc.data();
+          if (item.type === 'income') income += (item.amount || 0);
+          else expense += (item.amount || 0);
+
+          const isInc = item.type === 'income';
+          listDiv.innerHTML += `
+            <div class="bg-white p-3 rounded-xl border border-gray-100 flex items-center justify-between text-sm shadow-xs">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full ${isInc ? 'bg-green-100 text-brand' : 'bg-red-100 text-red-600'} flex items-center justify-center text-xs">
+                  <i class="fa-solid ${isInc ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+                </div>
+                <div>
+                  <p class="font-bold text-gray-800">${item.title}</p>
+                  <p class="text-xs text-gray-400">${item.date || ''} • ${item.category || ''}</p>
+                </div>
+              </div>
+              <span class="font-bold ${isInc ? 'text-brand' : 'text-red-600'}">${isInc ? '+' : '-'} ৳ ${(item.amount||0).toLocaleString()}</span>
+            </div>
+          `;
+        });
+
+        const balance = income - expense;
+        document.getElementById('statFund').innerText = `৳ ${balance.toLocaleString()}`;
+        document.getElementById('fundTotalBalance').innerText = `৳ ${balance.toLocaleString()}`;
+        document.getElementById('fundTotalIncome').innerText = `৳ ${income.toLocaleString()}`;
+        document.getElementById('fundTotalExpense').innerText = `৳ ${expense.toLocaleString()}`;
+      });
+
+      // 3. Donations list
+      db.collection('donations').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        let totalDonation = 0;
+        const listDiv = document.getElementById('donationsList');
+        listDiv.innerHTML = '';
+
+        snap.docs.forEach(doc => {
+          const don = doc.data();
+          totalDonation += (don.amount || 0);
+          listDiv.innerHTML += `
+            <div class="bg-white p-4 rounded-xl border border-gray-100 flex justify-between items-center shadow-xs">
+              <div>
+                <p class="font-bold text-gray-800">${don.donorName}</p>
+                <p class="text-xs text-gray-500">${don.method || 'বিকাশ'} ${don.note ? '• ' + don.note : ''}</p>
+                <p class="text-xs text-gray-400">${don.date || ''}</p>
+              </div>
+              <span class="text-lg font-bold text-brand">+ ৳ ${(don.amount||0).toLocaleString()}</span>
+            </div>
+          `;
+        });
+        document.getElementById('statDonations').innerText = `৳ ${totalDonation.toLocaleString()}`;
+      });
+
+      // 4. Announcements / Notices with Image support
+      db.collection('announcements').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        const box = document.getElementById('dashAnnouncements');
+        box.innerHTML = '';
+        if (snap.empty) {
+          box.innerHTML = '<div class="bg-white p-6 rounded-2xl border border-gray-100 text-center text-gray-400 text-xs">কোনো নোটিশ নেই</div>';
+          return;
+        }
+
+        const isAdm = currentUserProfile && (currentUserProfile.role === 'admin' || currentUserProfile.uid === SUPER_ADMIN_UID);
+
+        snap.docs.forEach(doc => {
+          const a = doc.data();
+          const hasImage = a.imageUrl && a.imageUrl.trim().length > 0;
+          box.innerHTML += `
+            <div class="bg-white border border-amber-200 rounded-2xl p-5 shadow-xs space-y-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-2 text-amber-700">
+                  <i class="fa-solid fa-bullhorn text-lg"></i>
+                  <h4 class="font-bold text-base text-gray-900">${a.title}</h4>
+                </div>
+                ${isAdm ? `<button onclick="deleteNotice('${doc.id}')" class="text-xs text-red-500 hover:text-red-700 font-semibold px-2 py-1 rounded bg-red-50 hover:bg-red-100"><i class="fa-solid fa-trash mr-1"></i>মুছে ফেলুন</button>` : ''}
+              </div>
+              <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">${a.message}</p>
+              ${hasImage ? `
+                <div class="rounded-xl overflow-hidden border border-gray-100 max-h-96">
+                  <img src="${a.imageUrl}" alt="Notice Photo" class="w-full h-auto object-cover cursor-pointer hover:scale-[1.01] transition" onclick="window.open('${a.imageUrl}', '_blank')">
+                </div>
+              ` : ''}
+              <div class="flex justify-between items-center text-xs text-gray-400 pt-2 border-t border-gray-100">
+                <span><i class="fa-solid fa-user-tie mr-1 text-amber-600"></i>${a.authorName || 'নিসচা প্রশাসন'}</span>
+                <span><i class="fa-regular fa-clock mr-1"></i>${a.date || ''}</span>
+              </div>
+            </div>
+          `;
+        });
+      });
+
+      // 5. Activities (কার্যক্রম) Real-time Sync
+      db.collection('activities').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        allActivitiesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        document.getElementById('statActivities').innerText = `${allActivitiesCache.length} টি`;
+        renderActivitiesList();
+      });
+
+      // 6. Realtime Group Chat
+      rtdb.ref('chat/group').limitToLast(50).on('value', snap => {
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+        snap.forEach(child => {
+          const msg = child.val();
+          const isMe = currentUserProfile && msg.senderUid === currentUserProfile.uid;
+          container.innerHTML += `
+            <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+              <span class="text-[10px] text-gray-400 font-bold px-1">${msg.senderName || 'সদস্য'}</span>
+              <div class="max-w-[75%] rounded-2xl px-4 py-2 text-sm ${isMe ? 'bg-brand text-white rounded-br-none' : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none shadow-xs'}">
+                ${msg.text}
+              </div>
+            </div>
+          `;
+        });
+        container.scrollTop = container.scrollHeight;
+      });
+
+      // 7. Accident Reports (for Admin)
+      db.collection('accident_reports').orderBy('timestamp', 'desc').onSnapshot(snap => {
+        const box = document.getElementById('adminAccidentList');
+        box.innerHTML = '';
+        if (snap.empty) {
+          box.innerHTML = '<p class="text-xs text-gray-400">কোনো রিপোর্ট জমা পড়েনি</p>';
+          return;
+        }
+        snap.docs.forEach(doc => {
+          const r = doc.data();
+          box.innerHTML += `
+            <div class="border border-red-200 bg-red-50/50 rounded-xl p-3 text-xs space-y-1">
+              <div class="flex justify-between font-bold text-red-700">
+                <span>স্থান: ${r.location}</span>
+                <span>${r.date || ''}</span>
+              </div>
+              <p class="text-gray-700">${r.description}</p>
+              <div class="flex justify-between items-center pt-2">
+                <span class="text-gray-500">রিপোর্টার: ${r.reporterName} (${r.reporterPhone})</span>
+                <a href="tel:${r.reporterPhone}" class="bg-red-600 text-white px-3 py-1 rounded-lg font-bold"><i class="fa-solid fa-phone"></i> কল করুন</a>
+              </div>
+            </div>
+          `;
+        });
+      });
+    }
+
+    // 8. Activities Rendering & Actions (Fixing Activities feature)
+    function renderActivitiesList() {
+      const container = document.getElementById('activitiesList');
+      container.innerHTML = '';
+
+      let list = allActivitiesCache;
+      if (currentActivityFilter !== 'all') {
+        list = list.filter(a => a.status === currentActivityFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-1 md:col-span-2 bg-white p-8 rounded-2xl border border-gray-100 text-center text-gray-400 text-sm">
+            এই ক্যাটাগরিতে কোনো কার্যক্রম পাওয়া যায়নি
+          </div>
+        `;
+        return;
+      }
+
+      const isAdm = currentUserProfile && (currentUserProfile.role === 'admin' || currentUserProfile.uid === SUPER_ADMIN_UID);
+
+      list.forEach(act => {
+        const isOngoing = act.status === 'ongoing';
+        const hasImg = act.imageUrl && act.imageUrl.trim().length > 0;
+
+        container.innerHTML += `
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden flex flex-col justify-between hover:border-brand/40 transition">
+            ${hasImg ? `
+              <div class="h-48 overflow-hidden bg-gray-50">
+                <img src="${act.imageUrl}" alt="${act.title}" class="w-full h-full object-cover">
+              </div>
+            ` : ''}
+            <div class="p-5 flex-grow space-y-2">
+              <div class="flex justify-between items-start gap-2">
+                <h4 class="font-bold text-base text-gray-900">${act.title}</h4>
+                <span class="text-xs px-2.5 py-0.5 rounded-full font-bold flex-shrink-0 ${isOngoing ? 'bg-green-100 text-brand' : 'bg-gray-100 text-gray-600'}">
+                  ${isOngoing ? '● চলমান' : '✓ সম্পন্ন'}
+                </span>
+              </div>
+              <p class="text-xs text-gray-600 leading-relaxed">${act.description}</p>
+              ${act.location ? `<p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-brand mr-1"></i>${act.location}</p>` : ''}
+            </div>
+
+            <div class="p-4 bg-gray-50/70 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+              <span><i class="fa-regular fa-calendar mr-1"></i>${act.date || ''}</span>
+              <div class="flex items-center gap-2">
+                ${act.spentAmount ? `<span class="font-bold text-gray-700">ব্যয়: ৳ ${act.spentAmount.toLocaleString()}</span>` : ''}
+                ${isAdm ? `
+                  <button onclick="toggleActivityStatus('${act.id}', '${act.status}')" title="স্ট্যাটাস পরিবর্তন" class="text-brand hover:underline font-bold">
+                    ${isOngoing ? 'সম্পন্ন করুন' : 'চলমান করুন'}
+                  </button>
+                  <button onclick="deleteActivity('${act.id}')" title="মুছে ফেলুন" class="text-red-500 hover:text-red-700 ml-1">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function filterActivities(type) {
+      currentActivityFilter = type;
+      ['all', 'ongoing', 'completed'].forEach(t => {
+        const btn = document.getElementById(`actFilter-${t}`);
+        if (t === type) {
+          btn.className = 'px-3 py-1.5 rounded-lg bg-white shadow-xs text-brand font-bold';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-gray-600 hover:text-brand';
+        }
+      });
+      renderActivitiesList();
+    }
+
+    async function handleActivitySubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('actSubmitBtn');
+      btn.disabled = true;
+      btn.innerText = "সংরক্ষণ হচ্ছে...";
+
+      try {
+        let imageUrl = document.getElementById('actImageUrl').value.trim();
+        const fileInput = document.getElementById('actImageFile');
+        if (fileInput.files && fileInput.files[0]) {
+          imageUrl = await compressImageFile(fileInput.files[0], 900, 900, 0.75);
+        }
+
+        const title = document.getElementById('actTitle').value.trim();
+        const desc = document.getElementById('actDesc').value.trim();
+        const status = document.getElementById('actStatus').value;
+        const spent = parseFloat(document.getElementById('actSpent').value) || 0;
+        const location = document.getElementById('actLocation').value.trim();
+        let date = document.getElementById('actDate').value.trim();
+        if (!date) date = new Date().toLocaleDateString('bn-BD');
+
+        await db.collection('activities').add({
+          title: title,
+          description: desc,
+          status: status,
+          spentAmount: spent,
+          location: location,
+          date: date,
+          imageUrl: imageUrl,
+          createdBy: currentUserProfile ? currentUserProfile.name : 'প্রশাসন',
+          createdAt: Date.now()
+        });
+
+        alert('কার্যক্রম সফলভাবে প্রকাশিত হয়েছে!');
+        closeModal('addActivityModal');
+        // Reset form
+        document.getElementById('actTitle').value = '';
+        document.getElementById('actDesc').value = '';
+        document.getElementById('actSpent').value = '0';
+        document.getElementById('actLocation').value = '';
+        document.getElementById('actDate').value = '';
+        document.getElementById('actImageUrl').value = '';
+        fileInput.value = '';
+      } catch (err) {
+        alert('কার্যক্রম প্রকাশে ত্রুটি: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "কার্যক্রম প্রকাশ করুন";
+      }
+    }
+
+    async function toggleActivityStatus(id, currentStatus) {
+      const nextStatus = currentStatus === 'ongoing' ? 'completed' : 'ongoing';
+      await db.collection('activities').doc(id).update({ status: nextStatus });
+    }
+
+    async function deleteActivity(id) {
+      if (confirm('আপনি কি নিশ্চিত এই কার্যক্রমটি মুছে ফেলতে চান?')) {
+        await db.collection('activities').doc(id).delete();
+      }
+    }
+
+    // 9. Notice Submit with Photo Support
+    async function handleNoticeSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('notSubmitBtn');
+      btn.disabled = true;
+      btn.innerText = "পোস্ট হচ্ছে...";
+
+      try {
+        let imageUrl = document.getElementById('notImageUrl').value.trim();
+        const fileInput = document.getElementById('notImageFile');
+        if (fileInput.files && fileInput.files[0]) {
+          imageUrl = await compressImageFile(fileInput.files[0], 900, 900, 0.75);
+        }
+
+        const title = document.getElementById('notTitle').value.trim();
+        const msg = document.getElementById('notDesc').value.trim();
+
+        await db.collection('announcements').add({
+          title: title,
+          message: msg,
+          imageUrl: imageUrl,
+          authorName: currentUserProfile ? currentUserProfile.name : 'নিসচা প্রশাসন',
+          date: new Date().toLocaleDateString('bn-BD'),
+          createdAt: Date.now()
+        });
+
+        alert('ছবিসহ ঘোষণা সফলভাবে প্রকাশিত হয়েছে!');
+        closeModal('postNoticeModal');
+        document.getElementById('notTitle').value = '';
+        document.getElementById('notDesc').value = '';
+        document.getElementById('notImageUrl').value = '';
+        fileInput.value = '';
+      } catch (err) {
+        alert('ত্রুটি: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "নোটিশ প্রকাশ করুন";
+      }
+    }
+
+    async function deleteNotice(id) {
+      if (confirm('আপনি কি এই নোটিশটি মুছে ফেলতে চান?')) {
+        await db.collection('announcements').doc(id).delete();
+      }
+    }
+
+    // 10. Admin Full Website Settings Customization
+    let pendingCustomLogoBase64 = null;
+
+    async function previewLogoFile(event) {
+      const file = event.target.files[0];
+      if (file) {
+        pendingCustomLogoBase64 = await compressImageFile(file, 400, 400, 0.85);
+        document.getElementById('cfgLogoPreview').src = pendingCustomLogoBase64;
+      }
+    }
+
+    function resetToDefaultLogo() {
+      pendingCustomLogoBase64 = 'app_logo.png';
+      document.getElementById('cfgLogoPreview').src = 'app_logo.png';
+      document.getElementById('cfgLogoUrlInput').value = '';
+      document.getElementById('cfgLogoFileInput').value = '';
+    }
+
+    async function handleSaveSiteConfig(e) {
+      e.preventDefault();
+      const customUrl = document.getElementById('cfgLogoUrlInput').value.trim();
+      let finalLogo = siteConfigCache.logoUrl || 'app_logo.png';
+
+      if (pendingCustomLogoBase64) {
+        finalLogo = pendingCustomLogoBase64;
+      } else if (customUrl) {
+        finalLogo = customUrl;
+      }
+
+      const updated = {
+        orgTitle: document.getElementById('cfgOrgTitle').value.trim(),
+        branchTitle: document.getElementById('cfgBranchTitle').value.trim(),
+        slogan: document.getElementById('cfgSlogan').value.trim(),
+        aboutText: document.getElementById('cfgAboutText').value.trim(),
+        logoUrl: finalLogo,
+        phonePolice: document.getElementById('cfgPhonePolice').value.trim(),
+        phoneFire: document.getElementById('cfgPhoneFire').value.trim(),
+        phoneHospital: document.getElementById('cfgPhoneHospital').value.trim(),
+        phoneNational: document.getElementById('cfgPhoneNational').value.trim(),
+        donationInfo: document.getElementById('cfgDonationInfo').value.trim(),
+        updatedAt: Date.now(),
+        updatedBy: currentUserProfile ? currentUserProfile.name : 'অ্যাডমিন'
+      };
+
+      await db.collection('settings').doc('site_config').set(updated, { merge: true });
+      alert('ওয়েবসাইটের সকল তথ্য ও লোগো সফলভাবে আপডেট হয়েছে!');
+      pendingCustomLogoBase64 = null;
+      closeModal('editSiteModal');
+    }
+
+    // 11. Send Chat
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text || !currentUserProfile) return;
+
+      rtdb.ref('chat/group').push({
+        senderUid: currentUserProfile.uid,
+        senderName: currentUserProfile.name,
+        text: text,
+        timestamp: Date.now()
+      });
+      input.value = '';
+    }
+
+    // 12. Members search & render
+    function renderMembersList(list) {
+      const container = document.getElementById('membersList');
+      container.innerHTML = '';
+      list.forEach(m => {
+        const isSuper = m.uid === SUPER_ADMIN_UID;
+        const isAdmin = m.role === 'admin' || isSuper;
+        container.innerHTML += `
+          <div class="bg-white p-4 rounded-xl border border-gray-100 flex items-center justify-between shadow-xs">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full bg-brand-light text-brand font-bold flex items-center justify-center text-sm border border-brand/20">
+                ${m.name.charAt(0)}
+              </div>
+              <div>
+                <p class="font-bold text-sm text-gray-800">${m.name} <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${isSuper ? 'bg-amber-100 text-amber-700' : (isAdmin ? 'bg-green-100 text-brand' : 'bg-gray-100 text-gray-500')}">${isSuper ? 'সুপার অ্যাডমিন' : (isAdmin ? 'অ্যাডমিন' : 'সদস্য')}</span></p>
+                <p class="text-xs text-gray-500">${m.phone ? 'ফোন: ' + m.phone : 'ফোন নেই'}</p>
+              </div>
+            </div>
+            ${m.phone ? `<a href="tel:${m.phone}" class="w-8 h-8 rounded-full bg-green-50 text-brand flex items-center justify-center text-sm hover:bg-brand hover:text-white transition"><i class="fa-solid fa-phone"></i></a>` : ''}
+          </div>
+        `;
+      });
+    }
+
+    function filterMembers() {
+      const q = document.getElementById('memberSearchInput').value.toLowerCase().trim();
+      const filtered = allMembersCache.filter(m => 
+        m.name.toLowerCase().includes(q) || (m.phone && m.phone.includes(q))
+      );
+      renderMembersList(filtered);
+    }
+
+    // 13. Other Submit Handlers
+    async function handleAccidentSubmit(e) {
+      e.preventDefault();
+      await db.collection('accident_reports').add({
+        location: document.getElementById('accLocation').value.trim(),
+        description: document.getElementById('accDesc').value.trim(),
+        injuredCount: document.getElementById('accInjured').value.trim(),
+        reporterPhone: document.getElementById('accPhone').value.trim(),
+        reporterName: currentUserProfile ? currentUserProfile.name : "নাগরিক রিপোর্ট",
+        reporterUid: currentUserProfile ? currentUserProfile.uid : "",
+        timestamp: Date.now(),
+        date: new Date().toLocaleDateString('bn-BD'),
+        status: 'pending'
+      });
+      alert('দুর্ঘটনার রিপোর্ট সফলভাবে পাঠানো হয়েছে! নিসচা টিম তৎপর হবে।');
+      closeModal('accidentModal');
+    }
+
+    async function handleDonationSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('donDonorName').value.trim();
+      const amount = parseFloat(document.getElementById('donAmount').value) || 0;
+      const method = document.getElementById('donMethod').value.trim();
+      const note = document.getElementById('donNote').value.trim();
+      const date = new Date().toLocaleDateString('bn-BD');
+
+      const donRef = await db.collection('donations').add({
+        donorName: name,
+        amount: amount,
+        method: method,
+        note: note,
+        date: date,
+        createdAt: Date.now()
+      });
+
+      await db.collection('fund_ledger').doc(`fund_${donRef.id}`).set({
+        title: `অনুদান: ${name}`,
+        amount: amount,
+        type: 'income',
+        category: 'সদস্য অনুদান',
+        date: date,
+        note: `${method} - ${note}`,
+        recordedBy: currentUserProfile ? currentUserProfile.name : 'প্রশাসন',
+        createdAt: Date.now()
+      });
+
+      alert('অনুদান ও তহবিল এন্ট্রি সফল হয়েছে!');
+      closeModal('addDonationModal');
+    }
+
+    async function handleExpenseSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('expTitle').value.trim();
+      const amount = parseFloat(document.getElementById('expAmount').value) || 0;
+      const cat = document.getElementById('expCategory').value.trim();
+      const date = new Date().toLocaleDateString('bn-BD');
+
+      await db.collection('fund_ledger').add({
+        title: title,
+        amount: amount,
+        type: 'expense',
+        category: cat,
+        date: date,
+        recordedBy: currentUserProfile ? currentUserProfile.name : 'প্রশাসন',
+        createdAt: Date.now()
+      });
+
+      alert('ব্যয় সফলভাবে রেকর্ড হয়েছে!');
+      closeModal('addExpenseModal');
+    }
+  </script>
+</body>
+</html>
